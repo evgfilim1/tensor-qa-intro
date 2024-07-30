@@ -8,7 +8,9 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip install -r requirements.txt
 
 RUN mkdir "/app/.pytest_cache" \
-    && chown 1000 "/app/.pytest_cache"
+    && chown 1000 "/app/.pytest_cache" \
+    && touch "/app/test-report.md" \
+    && chown 1000 "/app/test-report.md"
 
 COPY pytest.ini pytest.ini
 COPY tests tests
