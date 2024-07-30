@@ -11,12 +11,17 @@ on:
 permissions:
   contents: read
 
+env:
+  REGISTRY: ghcr.io
+
 jobs:
   build-docker:
     name: "Build Docker image"
     runs-on: ubuntu-latest
     permissions:
       packages: write
+      id-token: write
+      attestations: write
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@v4
@@ -25,19 +30,20 @@ jobs:
       - name: "Login to ghcr.io"
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: "Collect Docker image metadata"
         id: docker_build_meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ${{ env.REGISTRY }}/${{ github.repository }}
           tags: |
             type=ref,event=branch
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
       - name: "Build and push Docker image"
+        id: docker_push
         uses: docker/build-push-action@v6
         with:
           tags: ${{ steps.docker_build_meta.outputs.tags }}
@@ -45,6 +51,12 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           push: true
+      - name: Attest
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ github.repository }}
+          subject-digest: ${{ steps.docker_push.outputs.digest }}
+          push-to-registry: true
   test:
     name: "Run Docker test container"
     runs-on: ubuntu-latest
