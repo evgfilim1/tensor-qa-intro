@@ -1,10 +1,7 @@
-import logging
 from pathlib import Path
 
 import pytest
 import requests
-from selenium.webdriver.common.options import ArgOptions
-from selenium.webdriver.remote.webdriver import WebDriver
 
 from .config import Config
 from .pages.base import WarnMode
@@ -12,36 +9,6 @@ from .pages.sbis import HomePage as SBISHomePage
 
 OTHER_REGION_SUBSTR = "Камчатский край"
 MiB = 1024 * 1024
-
-_log = logging.getLogger(__name__)
-
-
-@pytest.fixture(scope="session")
-def config() -> Config:
-    return Config.from_env()
-
-
-@pytest.fixture(scope="function")
-def driver(config: Config, request: pytest.FixtureRequest) -> WebDriver:
-    options = ArgOptions()
-    options.set_capability("browserName", "firefox")
-    options.set_capability("se:recordVideo", config.record_videos)
-    options.set_capability("se:timeZone", "Asia/Yekaterinburg")
-    options.set_capability("se:name", request.node.name)
-
-    with WebDriver(command_executor=config.selenium_hub_url, options=options) as driver:
-        _log.info("Opened session %s for test %s", driver.session_id, request.node.name)
-        yield driver
-
-
-@pytest.fixture(scope="function", autouse=True)
-def enable_all_pages_logs(caplog: pytest.LogCaptureFixture) -> None:
-    caplog.set_level(logging.DEBUG, logger="tests")
-
-
-@pytest.fixture(scope="function")
-def sbis_homepage(driver: WebDriver) -> SBISHomePage:
-    return SBISHomePage.navigate_and_init(driver)
 
 
 def test_scenario1(sbis_homepage: SBISHomePage) -> None:
@@ -92,10 +59,11 @@ def test_scenario3(sbis_homepage: SBISHomePage, config: Config, tmp_path: Path) 
     if config.downloads_dir == "{tempdir}":
         download_dir = tmp_path
     else:
-        download_dir = Path(config.downloads_dir)
+        download_dir = config.downloads_dir
     plugin_path = download_dir / f"plugin.{download_info.extension}"
     # if plugin_path already exists, opening in "wb" mode will truncate it
     with requests.get(download_info.url, stream=True) as dl, plugin_path.open("wb") as f:
+        dl.raise_for_status()
         for chunk in dl.iter_content(chunk_size=None):
             f.write(chunk)
 
