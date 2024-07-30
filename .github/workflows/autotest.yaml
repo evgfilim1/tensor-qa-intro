@@ -84,3 +84,8 @@ jobs:
           retention-days: "30"
           path: |
             assets/
+      - name: "Cleanup"
+        if: always()
+        run: |
+          docker compose down -v --remove-orphans
+          rm -rf .env compose.yaml assets
