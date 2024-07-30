@@ -67,7 +67,7 @@ jobs:
           EOF
       - name: "Run tests"
         env:
-          IMAGE_REF: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          IMAGE_REF: "ghcr.io/${GITHUB_REPOSITORY}:sha-${GITHUB_SHA::7}"
         run: |
           docker compose up \
             --no-build \
