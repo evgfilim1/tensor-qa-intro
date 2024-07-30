@@ -50,7 +50,6 @@ def test_scenario2(sbis_homepage: SBISHomePage, config: Config) -> None:
     assert url != sbis_homepage.url
 
 
-@pytest.mark.slow
 def test_scenario3(sbis_homepage: SBISHomePage, config: Config, tmp_path: Path) -> None:
     downloads = sbis_homepage.navigate_to_download_local()
     downloads.wait_page_loaded()
