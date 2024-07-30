@@ -67,12 +67,26 @@ jobs:
           EOF
       - name: "Run tests"
         run: |
+          echo "==> Running tests"
+          echo "PYTEST_MD_REPORT_FLAVOR=github" >>.env
+          if [ -n "${CI:-}" ]; then
+            echo "CI=$CI" >>.env
+          fi
           IMAGE_REF=ghcr.io/${GITHUB_REPOSITORY}:sha-${GITHUB_SHA::7} \
           docker compose up \
             --no-build \
             --abort-on-container-exit \
             --exit-code-from tests \
             --attach tests
+          docker cp "$(docker compose ps -aq tests):/app/test-report.md" ./
+          echo "==> Generating test report"
+          {
+            printf '# Test report\n## Summary\n'
+            cat test-report.md
+            printf '\n## Logs\n\n<details>\n<summary>Click to open</summary>\n\n```\n'
+            docker compose logs --no-log-prefix tests
+            printf '```\n\n</details>\n'
+          } >>"$GITHUB_STEP_SUMMARY"
       - name: "Copy assets from selenium container"
         run: |
           docker cp "$(docker compose ps -aq selenium):/opt/selenium/assets" ./
