@@ -1,0 +1,33 @@
+x-restart: &restart "no"
+
+x-hc: &selenium-healthcheck
+  test: [ "CMD", "/opt/bin/check-grid.sh" ]
+  interval: 60s
+  timeout: 30s
+  retries: 5
+  start_period: 120s
+  start_interval: 5s
+
+services:
+  tests:
+    build:
+      context: .
+    image: "${IMAGE_REF:-}"
+    restart: *restart
+    environment:
+      SELENIUM_HUB_URL: http://selenium:4444/wd/hub
+    env_file:
+      - .env
+    depends_on:
+      selenium:
+        condition: service_healthy
+  selenium:
+    image: selenium/standalone-docker:4.22.0-20240621
+    restart: *restart
+    healthcheck: *selenium-healthcheck
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - assets:/opt/selenium/assets
+
+volumes:
+  assets:

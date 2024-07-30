@@ -1,0 +1,14 @@
+services:
+  selenium:
+    ports:
+      - "127.0.0.1:4444:4444"
+  www-assets:
+    image: joseluisq/static-web-server:2.32-alpine
+    volumes:
+      - assets:/srv/http/assets
+    environment:
+      SERVER_ROOT: "/srv/http/assets"
+      SERVER_DIRECTORY_LISTING: "true"
+      SERVER_DIRECTORY_LISTING_ORDER: "3"  # Last modified, desc
+    ports:
+      - "127.0.0.1:8080:80"
