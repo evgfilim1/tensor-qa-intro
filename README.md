@@ -2,6 +2,11 @@
 
 Тестовое задание на вакансию "Программист-тестировщик (отдел автотестирования)" в "Тензор".
 
+Тесты также запускаются на платформе GitHub Actions. 
+Результаты выполнения можно посмотреть по ссылке:
+
+[![Run QA tests](https://github.com/evgfilim1/tensor-qa-intro/actions/workflows/autotest.yaml/badge.svg)](https://github.com/evgfilim1/tensor-qa-intro/actions/workflows/autotest.yaml)
+
 ## Запуск тестов
 
 1. Установить Docker и docker-compose.
